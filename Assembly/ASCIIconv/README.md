@@ -20,9 +20,28 @@ Each loop, ``X10`` gets shifted to the left by 8 bits, in order to "free up" eno
 3. _Shift ``X8`` to the right by 4 bits, in order to repeat the loop with the remaining part of the number_  
 For example, with the initial value of ``0xF9A3``, ``X8`` stores ``0xF9A3`` during the first loop, ``0x0F9A`` during the second loop, ``0x00F9`` during the third loop, ``0x000F`` during the fourth loop, and when it reaches the value ``0x0000`` it Branches out of the loop.
   
-Once the loop has ended, it stores the value contained in ``X10``, which rapresents the ASCII codification of the initial value, in the stack and prints it to stdout.
+Once the loop has ended, it stores in the stack the value contained in ``X10``, which rapresents the ASCII codification of the initial value,  and prints it to stdout.
 
-
+## Pseudocode
+```
+main()
+  X8 = 0xF9A3
+  X10 = 0x0
+  
+  while(X8 != 0x0)
+    X9 = RightShift(X8, 4 Bit)
+    X9 = LeftShift(X9, 4 Bit)
+    X9 = X8 - X9
+    if(X9 >= 0x000A)
+      X9 = X9 + 0x0007
+    X9 = X9 + 0x0030
+    X10 = LeftShift(X10, 8 Bit)
+    X10 = X10 + X9
+    X8 = RightShift(X8, 4 Bit)
+  
+  push X10
+  print SP
+```
 
 
 ###### _created on: March 31th 2022_

@@ -3,8 +3,6 @@
 
 
 _start:
-    mov X4, #0xA
-
     mov X8, #0x9
     mov X9, #0x0
 
@@ -34,23 +32,4 @@ _asciiPrint:
 	mov	X2, #0x2
 	mov	X16, #0x4
     svc	#0x80
-    ret
-    
-/*
-main()
-    x8 = 9
-    x9 = 0
-
-    while(x8 != x9)     
-        asciiPrint(x9)
-        x9++
-
-    asciiPrint(x9)
-    exit()
-
-
-asciiPrint()
-    x10 = ascii(x9) + '\n'
-    push x10
-    print SP
- */
+    ret 	//the return instruction tells the procedure to branch back to where it was called with a branch and link

@@ -1,4 +1,4 @@
-# m1-assembly
+# M1 Assembly
 A collection of all my ARM64 Assembly programs I'm coding while learning it.
 
 ## Environment

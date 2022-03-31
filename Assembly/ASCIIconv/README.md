@@ -15,7 +15,7 @@ What it does every loop is to:
 1. _Copy into another register (``X9``) the value shifted by 4 bits to the right, then shift it to the left, again by 4 bits, and subtract it from the original value._  
 This allows to "extract" the least significant digit from the original value and store it into the ``X9`` register.
 Using ``0xF9A3`` as an example, let's look at ``X9``'s value during this step: ``0x0F9A`` -> ``0xF9A0`` -> ``0xF9A3 - 0xF9A0`` which results in ``0x0003``, which indeed is the least significant digit of the original value ``0xF9A3``.
-2. _Convert the value stored in ``X9`` into its ASCII codification, then inserting the converted value into the register ``X10`` (shifted by 4 bits to the left)._  
+2. _Convert the value stored in ``X9`` into its ASCII codification, then insert the converted value into the register ``X10`` (shifted by 4 bits to the left)._  
 To convert ``X9`` into its ASCII codification, you need to add to its current value either ``'A'`` (``0x0041``), if it's a letter, or ``'0'`` (``0x0030``), if it's a number. To implement this, this program always adds ``0x0030`` to the value stored in ``X9``, and uses a Conditional Branch in order to add an additional offset of ``0x0007`` (as ``0x000A`` should become ``0x0041`` if converted into ASCII), if ``X9`` stores a value grater or equal to ``0x000A``.  
 Each loop, ``X10`` gets shifted to the left by 8 bits, in order to "free up" enouch space for the incoming 8-bit ASCII codification, then its value gets added to the converted ``X9`` value.
 3. _Shift ``X8`` to the right by 4 bits, in order to repeat the loop with the remaining part of the number_  

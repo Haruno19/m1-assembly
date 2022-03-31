@@ -21,10 +21,10 @@ _exit:
 
 
 _asciiPrint:
-    add X11, X9, #0x30      //x11 = ... 00000000 00000000 00000000 ascii(x9)    -> ascii(x9)
-    mov X10, #0xA           //x10 = ... 00000000 00000000 00000000 0000000A     -> "\n"
-    lsl X10, X10, #8        //x10 = ... 00000000 00000000 0000000A 00000000     
-    add X10, X10, X11       //x10 = ... 00000000 00000000 0000000A ascii(x9)    -> "ascii(x9)\n"
+    add X11, X9, #0x30      	;x11 = ... 00000000 00000000 00000000 ascii(x9)    -> ascii(x9)
+    mov X10, #0xA           	;x10 = ... 00000000 00000000 00000000 0000000A     -> "\n"
+    lsl X10, X10, #8        	;x10 = ... 00000000 00000000 0000000A 00000000     
+    add X10, X10, X11       	;x10 = ... 00000000 00000000 0000000A ascii(x9)    -> "ascii(x9)\n"
 	str X10, [SP, #0x0]	
 
     mov	X0, #0x1
@@ -32,4 +32,4 @@ _asciiPrint:
 	mov	X2, #0x2
 	mov	X16, #0x4
     svc	#0x80
-    ret 	//the return instruction tells the procedure to branch back to where it was called with a branch and link
+    ret 			;the return instruction tells the procedure to branch back to where it was called with a branch and link

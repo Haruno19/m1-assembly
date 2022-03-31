@@ -9,5 +9,4 @@ I'm using the standard ARM64 instruction set and registers.
 I got my inspiration from <a href='https://github.com/below/HelloSilicon'>Hello Silicon</a> and I'm using it as my primary reference to learn Assembly.
 
 ARM64 Assembly documentation: 
-* the included html file (downloaded from <a href='https://cit.dixie.edu/cs/2810/arm64-assembly.html'>here</a>)
 * <a href='https://developer.arm.com/documentation/'>Arm Developer</a>

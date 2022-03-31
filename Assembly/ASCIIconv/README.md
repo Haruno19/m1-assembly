@@ -5,7 +5,7 @@ This program stores a value in a **register**, ``X8``, then **iterates** until t
 
 
 ## In-detail explaination
-The goal of this program is to convert an arbitrary HEX value stored in a register to it's ASCII codification. For example, ``0xF9A3`` will become [``'F'``,``'9'``,``'A'``,``'3'``].  
+The goal of this program is to convert an arbitrary HEX value stored in a register to its ASCII codification. For example, ``0xF9A3`` will become [``'F'``,``'9'``,``'A'``,``'3'``].  
 In order to print to stdout this ASCII string it needs to be stored as: [``3``,``A``,``9``,``F``], with each "block" long 8 Bits.  
   
 To perform the conversion of any given value, regarderless of its size, the program uses a loop.  

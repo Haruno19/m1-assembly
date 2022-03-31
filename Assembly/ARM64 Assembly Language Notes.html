@@ -1,0 +1,787 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>ARM64 Assembly Language Notes</title>
+  <meta name="GENERATOR" content="Blackfriday Markdown Processor v1.0" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="/style/plain.css" />
+</head>
+<body>
+
+<h1>ARM64 Assembly Language Notes</h1>
+
+<p>This document is a quick reference for material that we talk about
+in class.</p>
+
+<h2>Integer registers</h2>
+
+<p>There are 32 main registers, x0–x30 (64-bit versions) or w0–w30
+(32-bit versions). x31 is a special case register used as the stack
+pointer.</p>
+
+<ul>
+<li>x0–x7: function arguments, scratch (x0 is also function return value)</li>
+<li>x8–x18: scratch (x8 is syscall number, x16–x18 sometimes reserved)</li>
+<li>x19–x28: callee-saved registers (save to stack at beginning of
+function, restore from stack before returning)</li>
+<li>x29: frame pointer</li>
+<li>x30: link register (save to stack for non-leaf functions)</li>
+<li>sp: stack pointer</li>
+</ul>
+
+<p>You do not need to save the values in scratch registers, but you
+also cannot assume they have been saved when you call another
+function.</p>
+
+<p>You must save callee-saved registers if you plan to use them, and
+restore the value before you return. This is most often done using
+the stack.</p>
+
+<h2>Basic instructions</h2>
+
+<p>Here are some of the most common assembly language instructions we
+will use. Code is normally part of the text segment.</p>
+
+<h3>Basic integer operations</h3>
+
+<ul>
+<li><code>add x0, x1, x2</code>: x0 = x1 + x2</li>
+<li><code>add x0, x1, #3</code>: x0 = x1 + 3, only a limited range of constants</li>
+<li><code>add x0, x1, x2, lsl #3</code>: x0 = x1 + x2×8 (x2 shifted left 3 times)</li>
+<li><code>add x0, x1, x2, lsr #2</code>: x0 = x1 + x2÷4 (x2 shifted right 2 times)</li>
+</ul>
+
+<p>The same variations for the second input argument are available for:</p>
+
+<ul>
+<li><code>sub x0, x1, x2</code>: x0 = x1 - x2</li>
+<li><code>neg x0, x1</code>: x0 = -x1</li>
+<li><code>and x0, x1, x2</code>: x0 = x1 AND x2 (bitwise AND)</li>
+<li><code>orr x0, x1, x2</code>: x0 = x1 OR x2 (bitwise OR)</li>
+<li><code>eor x0, x1, x2</code>: x0 = x1 XOR x2 (bitwise exclusive OR)</li>
+<li><code>bic x0, x1, x2</code>: x0 = x1 AND NOT x2 (bit clear)</li>
+<li><code>mov x0, x2</code>: x0 = x2</li>
+<li><code>mvn x0, x2</code>: x0 = NOT x2 (flip all the bits)</li>
+</ul>
+
+<p>Shifting instructions include:</p>
+
+<ul>
+<li><code>lsl x0, x1, x2</code>: x0 = x1 shifted left x2 times</li>
+<li><code>lsl x0, x1, #2</code>: x0 = x1 shifted left twice</li>
+<li><code>lsr x0, x1, x2</code>: same but shifted right</li>
+</ul>
+
+<p>The main compare instructions are:</p>
+
+<ul>
+<li><code>cmp x1, x2</code>: compare x1 with x2 (subtract and set flags, but do not store result)</li>
+<li><code>tst x1, x2</code>: test x1 against x2 (AND and set flags, but do not sture result)</li>
+</ul>
+
+<p>The basic forms of multiply and divide are:</p>
+
+<ul>
+<li><code>mul x0, x1, x2</code>: x0 = x1 × x2</li>
+<li><code>sdiv x0, x1, x2</code>: x0 = x1 ÷ x2 (for signed division)</li>
+<li><code>udiv x0, x1, x2</code>: x0 = x1 ÷ x2 (for unsigned division)</li>
+</ul>
+
+<h3>Memory access</h3>
+
+<p>To load a word (64 bits) from memory there are a few variations:</p>
+
+<ul>
+<li><code>ldr x0, [x1]</code>: load the value at address x1 into x0</li>
+<li><code>ldr x0, [x1, x2]</code>: load the value at address x1 + x2 into x0</li>
+<li><code>ldr x0, [x1, #8]</code>: load the value at address x1 + 8 into x0</li>
+<li><code>ldr x0, [x1, x2, lsl #3]</code>: load the value at address x1 + x2×8</li>
+</ul>
+
+<p>Everything inside the square brackets is added together to compute
+an address, and the value at that address is loaded in the register
+(x0 in these examples). x1 (or whatever register goes in that
+position) is normally the beginning of an array or struct, and x2
+(in the examples) is used to index into that array or struct. The x2
+part of it can optionally be shifted left (multiplied by a power of
+two), convenient when x2 in an index but the size of the individual
+elements is 2, 4, or 8 bytes (an array of integers, for example).</p>
+
+<p>There are also variations for loading bytes:</p>
+
+<ul>
+<li><code>ldrb w0, [x1]</code>: load the byte at address x1 into x0</li>
+<li>…</li>
+</ul>
+
+<p>Note the use of w0 instead of x0. w0 refers to the 32-bit version of
+the register, and is required for byte accesses.</p>
+
+<p>There are similar instructions for storing to memory:</p>
+
+<ul>
+<li><code>str x0, [x1]</code>: store the value in x0 to the address in x1</li>
+<li>…</li>
+</ul>
+
+<p>and for storing bytes:</p>
+
+<ul>
+<li><code>strb w0, [x1]</code>: store the byte in x0 to the address in x1</li>
+<li>…</li>
+</ul>
+
+<p>If you need to load an address into a register, you cannot normally
+use <code>mov x0, #address</code>, because there is not room in the instruction
+to hold such a large constant. Instead, there is a special
+instruction for loading addresses:</p>
+
+<ul>
+<li><code>adr x0, =label</code>: load the address of label into x0</li>
+</ul>
+
+<p>Finally, there is a special form of <code>ldr</code> for loading an arbitrary
+constant into a register:</p>
+
+<ul>
+<li><code>ldr x0, =12345678</code>: load the constant 12345678 into x0</li>
+</ul>
+
+<p>This is a pseudo-instruction provided by the assembler. If possible,
+it is converted into a <code>mov</code> instruction to load a constant. If the
+constant will not fit in a <code>mov</code> instruction, the assembler stores
+it in memory nearby (usually after the current <code>.text</code> segment block
+ends) and generates an instruction to load it from that location.
+When this happens it is actually an <code>ldr</code> instruction, but the form
+of the instruction is not quite what was written.</p>
+
+<h3>Branches</h3>
+
+<p>The most common conditions are presented here, and are used for
+conditional branches. These are described as though you just ran
+ <code>cmp x0, x1</code>:</p>
+
+<ul>
+<li><code>eq</code>: if x0 = x1</li>
+<li><code>ne</code>: if x0 ≠ x1</li>
+<li><code>lt</code>: if x0 &lt; x1</li>
+<li><code>le</code>: if x0 ≤ x1</li>
+<li><code>gt</code>: if x0 &gt; x1</li>
+<li><code>ge</code>: if x0 ≥ x1</li>
+</ul>
+
+<p>For example, <code>b.lt rejoin</code> branches to the label <code>rejoin</code>, but only
+if <code>x0 &lt; x1</code> (from the <code>cmp</code> instruction given above)</p>
+
+<p>To branch:</p>
+
+<ul>
+<li><code>b.&lt;condition&gt;</code>, e.g., <code>b</code>, <code>b.eq</code>, <code>b.ne</code>, etc. This form just
+branches to a new location, which is normally a program label.</li>
+<li><code>bl</code>: this form is branch-and-link, which puts a return address in
+<code>x30</code> (the link register). This is normally how you would call a
+function.</li>
+<li><code>blr x0</code>: this is a variation of <code>bl</code> that jumps to the address
+in a register (<code>x0</code> in this example). This is how you would call
+a function when the function&rsquo;s address is given to you as a
+pointer instead of being a regular label.</li>
+<li><code>ret x0</code>: branch to the address in x0. <code>ret</code> with no argument is
+shorthand for <code>ret x30</code>. This is normally how you would return
+from a function, using the value that a previous <code>bl</code> provided.</li>
+</ul>
+
+<p>There are a few specialized branch instructions:</p>
+
+<ul>
+<li><code>cbz x0, label</code>: branch to label if x0 contains a zero</li>
+<li><code>cbnz x0, label</code>: branch to label if x0 is NOT a zero</li>
+</ul>
+
+<h2>Making function calls</h2>
+
+<p>To make a function call, put the parameters in the appropriate
+registers (<code>x0</code>, <code>x1</code>, etc.) then issue a branch-with-link
+instruction: <code>bl funcname</code>. This jumps to the given label, but also
+puts the return address into the link register.</p>
+
+<p>When the function call returns, you should assume that all registers
+labeled as “scratch” have lost their former values. Values stored in
+the callee-saved registers should have the same value as before the
+function call.</p>
+
+<p>If you have a value that you care about in a scratch register and
+you need to make a function call, you have two choices:</p>
+
+<ol>
+<li>Move the value into a non-scratch register. You may want to plan
+for this earlier. For example, instead of storing an important
+value in <code>x2</code>, use a non-scratch register like <code>x20</code> instead. You
+may need to rewrite earlier code to make this work.</li>
+<li>Push the value onto the stack right before making the call, then
+pop it back off after the call finishes.</li>
+</ol>
+
+<p>The disadvantage to option 2 is that you have to do it before every
+function call, and I recommend avoiding this. I recommend using
+option 1 until you run out of registers. Only start spilling values
+onto the stack when there are no registers available.</p>
+
+<h3>Functions and stack operations</h3>
+
+<p>For leaf function (one that does <em>not</em> call any other functions),
+you can typically use only scratch registers and ignore the stack.
+For a non-leaf function (or one where the scratch registers are
+insufficient), start each function with these two instructions:</p>
+
+<pre><code>stp    x29, x30, [sp, #-16]!
+mov    x29, sp
+</code></pre>
+
+<p>The first one stores a pair of registers, <code>x29</code> (the frame pointer),
+and <code>x30</code> (the link register) onto the stack. The memory location
+where the two values are stored is computed as <code>sp - 16</code>, but it
+also has the side-effect of updating <code>sp</code> to the computed value (the
+<code>!</code> symbol at the end causes this side-effect). The effect is to
+change the stack from this:</p>
+
+<pre><code>     |                      |
+sp--&gt;| caller's stack frame |
+     +----------------------+
+</code></pre>
+
+<p>where the stack pointer identifies the last used location on the
+stack (which belongs to the caller), to:</p>
+
+<pre><code>     |                      |
+     | caller's stack frame |
+     |                      |
+     +----------------------+
+     | saved return address |  +8
+     +----------------------+
+fp--&gt;| saved frame pointer  |   0
+     +----------------------+
+</code></pre>
+
+<p>i.e., the return address and old frame pointer have been saved on
+the stack (the <code>stp</code> instruction does this), the stack pointer moved
+down to make room for the two values (also done by the <code>stp</code>
+instruction), and the new frame pointer is set as indicated (the
+<code>mov</code> instruction does this). Note at this point the stack pointer
+and the frame pointer are referring to the same memory address, but
+the stack pointer is omitted from the diagram.</p>
+
+<p>The right side of the diagram also shows the location of each value
+on the stack, relative to the frame pointer. For example, the saved
+return address is stored eight bytes past the location the frame
+pointer refers to. This is one of the main functions of the frame
+pointer—it provides an anchor at the top of the stack frame and all
+other addresses on the stack frame are computed relative to it.</p>
+
+<p>Next, work out which registers you will need, and save the old
+values by pushing them onto the stack. Then pop them off at the end
+of the function to restore them. You reserve stack space by simply
+moving the stack pointer:</p>
+
+<pre><code>sub     sp, sp, #32         // reserve 32 bytes (four 64-bit words)
+</code></pre>
+
+<p>This would result in the following stack frame:</p>
+
+<pre><code>     |                      |
+     | caller's stack frame |
+     |                      |
+     +----------------------+
+     | saved return address |  +8
+     +----------------------+
+fp--&gt;| saved frame pointer  |   0
+     +----------------------+
+     |                      |  -8
+     +----------------------+
+     |                      |  -16
+     +----------------------+
+     |                      |  -24
+     +----------------------+
+sp--&gt;|                      |  -32
+     +----------------------+
+</code></pre>
+
+<p>The next step is to save any callee-saved registers that you intend
+to use:</p>
+
+<pre><code>str    x19, [x29, #-32]
+str    x20, [x29, #-24]
+str    x21, [x29, #-16]
+str    x22, [x29, #-8]
+</code></pre>
+
+<p>resulting in:</p>
+
+<pre><code>     |                      |
+     | caller's stack frame |
+     |                      |
+     +----------------------+
+     | saved return address |  +8
+     +----------------------+
+fp--&gt;| saved frame pointer  |   0
+     +----------------------+
+     | saved x22            |  -8
+     +----------------------+
+     | saved x21            |  -16
+     +----------------------+
+     | saved x20            |  -24
+     +----------------------+
+sp--&gt;| saved x19            |  -32
+     +----------------------+
+</code></pre>
+
+<p>Adjust accordingly if you need more or fewer slots on your stack
+frame. I recommend creating a diagram like this and putting it in
+the comments at the top of your function so it is easy to keep track
+of your stack usage. This stack setup and storage of callee-saved
+registers is often called the <em>function prelude</em>.</p>
+
+<p>At the end of the function, you need a corresponding <em>function
+postlude</em>. After loading the return value into <code>x0</code>, clean up and
+return using code like this:</p>
+
+<pre><code>// restore the callee-saved registers that we used
+ldr    x19, [x29, #-32]
+ldr    x20, [x29, #-24]
+ldr    x21, [x29, #-16]
+ldr    x22, [x29, #-8]
+
+// free the stack space that we reserved
+// note: this should exactly match the subtraction at the top
+add    sp, sp, #32
+
+// load the old frame pointer and return address,
+// and also move the stack pointer back up 16 bytes
+ldp     x29, x30, [sp], 16
+
+// return: the return value should have been loaded into x0 earlier
+ret
+</code></pre>
+
+<p>Note that the stack pointer must always be a multiple of 16, so if
+you only need an odd number of 8-byte slots you should round it up
+and reserve a multiple of 16 bytes.</p>
+
+<h3>Returning from a function call</h3>
+
+<p>There are two common ways to return from a function:</p>
+
+<ol>
+<li><p>For a leaf function (one that does <em>not</em> call any other
+functions): at the beginning of the function, do nothing, and
+then at the end issue:</p>
+
+<p><code>ret</code></p>
+
+<p>When the function begins, the return address is in the <code>x30</code>
+register. If you can leave that register alone, it will be there
+when the function finishes so you can branch to it to return.</p>
+
+<p>Note that this approach is only an option if <code>x30</code> can remain
+undisturbed through your entire function. Note especially that
+calling another function overwrites the value of <code>x30</code>, so any
+function that calls another function cannot use this approach.</p></li>
+
+<li><p>At the beginning of the function, push the value of <code>x30</code> onto
+the stack (the stack code listed above does this). Within the
+function, you can use it as another scratch register, bearing in
+mind that it will be lost as soon as you make another function
+call (this is true of all scratch registers).</p>
+
+<p>At the end of the function, pop the value off the stack and
+back into a register, usually back into <code>x30</code>. Isssue a <code>ret</code>
+instruction.</p></li>
+</ol>
+
+<h2>Passing parameters on the stack</h2>
+
+<p>When a function has more than eight integer arguments, additional
+parameters must be passed in on the stack. For example, calling a
+function <code>sum</code> that takes nine arguments might look like:</p>
+
+<pre><code class="asm">        sub     sp, sp, #16
+        mov     x0, #90
+        str     x0, [sp, #0]
+        mov     x0, #10
+        mov     x1, #20
+        mov     x2, #30
+        mov     x3, #40
+        mov     x4, #50
+        mov     x5, #60
+        mov     x6, #70
+        mov     x7, #80
+        bl      sum
+        add     sp, sp, #16
+</code></pre>
+
+<p>In this example, we put the ninth parameter (#90) onto the stack
+first, then load the other eight values into x0–x7. Because the stack
+must always have an even number of elements, we reserve 16 bytes
+even though we only need 8 of them.</p>
+
+<p>After the function call completes, we throw away the values on the
+stack by adding 16 to the stack pointer.</p>
+
+<p>The following would be another way of accomplishing the same thing:</p>
+
+<p>If we had eleven integer parameters so three of them needed to go on
+the stack, we could use:</p>
+
+<pre><code>sub     sp, #32             // always keep sp a multiple of 16
+mov     x0, #90
+str     x0, [sp, #0]
+mov     x0, #100
+str     x0, [sp, #8]
+mov     x0, #110
+str     x0, [sp, #16]
+</code></pre>
+
+<p>and then load the first eight parameters in x0–x7 as usual.</p>
+
+<p>The function that is being called can access those values by loading
+them directly from the stack. Note that it must also account for any
+changes it makes to the stack. For example:</p>
+
+<p>sum:
+    sub     sp, sp, #16         // make sure sp remains a multiple of 16
+    str     x30, [sp, #0]
+    add     x0, x0, x1          // get the sum of x0 through x7
+    add     x2, x2, x3
+    add     x4, x4, x5
+    add     x6, x6, x7
+    add     x0, x0, x2
+    add     x4, x4, x6
+    add     x0, x0, x4
+    ldr     x1, [sp, #16]       // parameter number 9
+    ldr     x2, [sp, #24]       // parameter number 10
+    ldr     x3, [sp, #32]       // parameter number 11
+    add     x1, x1, x2
+    add     x1, x1, x3
+    add     x0, x0, x1
+    // &hellip;
+    ldr     x30, [sp, #0]
+    add     sp, sp, #16
+    ret</p>
+
+<p>Since <code>sum</code> starts by reserving 16 bytes on the stack (two registers
+worth of space), it must compensate when calculating where its
+parameters are relative to the stack pointer.
+Since its ninth parameter was the first item on the
+stack when it was called, that ninth parameter is now 16 bytes past
+the beginning of the stack. Likewise, the tenth parameter is 24
+bytes past the beginning, and the eleventh parameter is 32 bytes
+past the beginning. After reserving those initial 16 bytes, the
+stack looks like:</p>
+
+<pre><code>     | ...                  |
+     +----------------------+
+     | parameter 11         |
+     +----------------------+
+     | parameter 10         |
+     +----------------------+
+     | parameter 9          |
+     +----------------------+
+     | padding              |
+     +----------------------+
+sp--&gt;| saved x30 reg        |
+     +----------------------+
+</code></pre>
+
+<p>where each box is 8 bytes in size.</p>
+
+<h2>System calls</h2>
+
+<p>A system call is similar to a function call, except that the call is
+being made to the operating system instead of to more code within
+your program. The basic process is the same as for a function call,
+with parameters going in the same registers (at least for the
+parameters we will use). In addition, the system call number must be
+loaded into the x8 register, and then instead of issuing a “bl”
+instruction, you should issue a “svc #0” instruction.</p>
+
+<p>For example, to write a message to stdout (which always has the file
+descriptor 1):</p>
+
+<pre><code>mov     x0, #1                  // stdout
+adr     x1, buffer              // where to find the data to write
+mov     x2, #20                 // number of bytes to write
+mov     x8, #sys_write          // sys_write is 64, defined elsewhere
+svc     #0
+</code></pre>
+
+<p>The result of the call is in x0 after the call finishes. If this
+value is negative, it normally indicates an error.</p>
+
+<p>While testing your code, it may be helpful to use an error status
+code as the value in a call to exit. If you do this, then you can
+look up the error code in this chart (the syscall result is the
+error code negated). This chart comes from
+<code>/usr/include/asm-generic/errno-base.h</code>:</p>
+
+<table>
+<thead>
+<tr>
+<td>Name</td>
+<td>Number</td>
+<td>Error message</td>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>EPERM</td>
+<td>1</td>
+<td>Operation not permitted</td>
+</tr>
+
+<tr>
+<td>ENOENT</td>
+<td>2</td>
+<td>No such file or directory</td>
+</tr>
+
+<tr>
+<td>ESRCH</td>
+<td>3</td>
+<td>No such process</td>
+</tr>
+
+<tr>
+<td>EINTR</td>
+<td>4</td>
+<td>Interrupted system call</td>
+</tr>
+
+<tr>
+<td>EIO</td>
+<td>5</td>
+<td>I/O error</td>
+</tr>
+
+<tr>
+<td>ENXIO</td>
+<td>6</td>
+<td>No such device or address</td>
+</tr>
+
+<tr>
+<td>E2BIG</td>
+<td>7</td>
+<td>Argument list too long</td>
+</tr>
+
+<tr>
+<td>ENOEXEC</td>
+<td>8</td>
+<td>Exec format error</td>
+</tr>
+
+<tr>
+<td>EBADF</td>
+<td>9</td>
+<td>Bad file number</td>
+</tr>
+
+<tr>
+<td>ECHILD</td>
+<td>10</td>
+<td>No child processes</td>
+</tr>
+
+<tr>
+<td>EAGAIN</td>
+<td>11</td>
+<td>Try again</td>
+</tr>
+
+<tr>
+<td>ENOMEM</td>
+<td>12</td>
+<td>Out of memory</td>
+</tr>
+
+<tr>
+<td>EACCES</td>
+<td>13</td>
+<td>Permission denied</td>
+</tr>
+
+<tr>
+<td>EFAULT</td>
+<td>14</td>
+<td>Bad address</td>
+</tr>
+
+<tr>
+<td>ENOTBLK</td>
+<td>15</td>
+<td>Block device required</td>
+</tr>
+
+<tr>
+<td>EBUSY</td>
+<td>16</td>
+<td>Device or resource busy</td>
+</tr>
+
+<tr>
+<td>EEXIST</td>
+<td>17</td>
+<td>File exists</td>
+</tr>
+
+<tr>
+<td>EXDEV</td>
+<td>18</td>
+<td>Cross-device link</td>
+</tr>
+
+<tr>
+<td>ENODEV</td>
+<td>19</td>
+<td>No such device</td>
+</tr>
+
+<tr>
+<td>ENOTDIR</td>
+<td>20</td>
+<td>Not a directory</td>
+</tr>
+
+<tr>
+<td>EISDIR</td>
+<td>21</td>
+<td>Is a directory</td>
+</tr>
+
+<tr>
+<td>EINVAL</td>
+<td>22</td>
+<td>Invalid argument</td>
+</tr>
+
+<tr>
+<td>ENFILE</td>
+<td>23</td>
+<td>File table overflow</td>
+</tr>
+
+<tr>
+<td>EMFILE</td>
+<td>24</td>
+<td>Too many open files</td>
+</tr>
+
+<tr>
+<td>ENOTTY</td>
+<td>25</td>
+<td>Not a typewriter</td>
+</tr>
+
+<tr>
+<td>ETXTBSY</td>
+<td>26</td>
+<td>Text file busy</td>
+</tr>
+
+<tr>
+<td>EFBIG</td>
+<td>27</td>
+<td>File too large</td>
+</tr>
+
+<tr>
+<td>ENOSPC</td>
+<td>28</td>
+<td>No space left on device</td>
+</tr>
+
+<tr>
+<td>ESPIPE</td>
+<td>29</td>
+<td>Illegal seek</td>
+</tr>
+
+<tr>
+<td>EROFS</td>
+<td>30</td>
+<td>Read-only file system</td>
+</tr>
+
+<tr>
+<td>EMLINK</td>
+<td>31</td>
+<td>Too many links</td>
+</tr>
+
+<tr>
+<td>EPIPE</td>
+<td>32</td>
+<td>Broken pipe</td>
+</tr>
+
+<tr>
+<td>EDOM</td>
+<td>33</td>
+<td>Math argument out of domain of func</td>
+</tr>
+
+<tr>
+<td>ERANGE</td>
+<td>34</td>
+<td>Math result not representable</td>
+</tr>
+</tbody>
+</table>
+
+<p>The syscalls you will need in this course are as follows (taken from
+<code>/usr/include/asm-generic/unistd.h</code>):</p>
+
+<table>
+<thead>
+<tr>
+<td>Number</td>
+<td>Example call</td>
+<td>Return value</td>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>93</td>
+<td><code>sys_exit(status)</code></td>
+<td>does not return</td>
+</tr>
+
+<tr>
+<td>63</td>
+<td><code>sys_read(fd, pointer, size)</code></td>
+<td>returns the number of bytes read (negative for error)</td>
+</tr>
+
+<tr>
+<td>64</td>
+<td><code>sys_write(fd, pointer, size)</code></td>
+<td>returns the number of bytes written (negative for error)</td>
+</tr>
+
+<tr>
+<td>1024</td>
+<td><code>sys_open(name, flags, mode)</code></td>
+<td>returns the new file descriptor (negative for error)</td>
+</tr>
+
+<tr>
+<td>57</td>
+<td><code>sys_close(fd)</code></td>
+<td>no return value (negative for error)</td>
+</tr>
+</tbody>
+</table>
+
+</body>
+</html>

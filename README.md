@@ -1,5 +1,5 @@
 # M1 Assembly
-A collection of all my **ARM64 Assembly** programs I'm coding while _learning_ Assembly.  
+A collection of all the **ARM64 Assembly** programs I'm coding while _learning_ Assembly.  
 I'll try to keep every code well **documented** via in-code comments and README files. 
 
 ## Environment

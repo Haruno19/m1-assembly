@@ -5,7 +5,7 @@ It stores two values in two **registers**, ``X3`` and ``X4``, compares them and 
 
 ## Pseudocode
 ```
-string euqal = "equal"
+string equal = "equal"
 string notequal = "not equal"
 
 main()
